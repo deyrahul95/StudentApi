@@ -9,13 +9,24 @@ namespace StudentApi.Services;
 
 public class StudentService(
     IStudentRepository studentRepository,
+    IFileExtractor fileExtractor,
     ILogger<StudentService> logger) : IStudentService
 {
-    public async Task<ServiceResult> AddStudents(CancellationToken token = default)
+    public async Task<ServiceResult> AddStudents(IFormFile file, CancellationToken token = default)
     {
         try
         {
-            await Task.CompletedTask;
+            logger.LogInformation("Start extracting student data from excel file. FileName: {FileName}", file.FileName);
+            var excelStudentModels = await fileExtractor.ExtractFileData<ExcelStudentModel>(
+               file,
+               token,
+               (row, error) => logger.LogError("Row {@Row} error: {@Error}", row, error));
+
+            logger.LogInformation("Student data extracted successfully. Count: {Count}", excelStudentModels.Count);
+
+            await studentRepository.AddAllAsync(excelStudentModels.ToEntityList(), token);
+            logger.LogInformation("Data inserted into DB");
+
             return new ServiceResult(
                 statusCode: HttpStatusCode.Created,
                 message: "Students added into database successfully");

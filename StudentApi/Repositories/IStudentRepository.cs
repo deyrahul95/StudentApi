@@ -13,6 +13,7 @@ public interface IStudentRepository
     /// <param name="token">Cancellation token</param>
     /// <returns>Returns an IEnumerable list of <see cref="Student"/> data</returns>
     Task<IEnumerable<Student>> GetAllAsync(CancellationToken token = default);
+
     /// <summary>
     /// Retrieve student data by it's ID
     /// </summary>
@@ -20,6 +21,7 @@ public interface IStudentRepository
     /// <param name="token">Cancellation token</param>
     /// <returns>Returns <see cref="Student"/> data if found else Null</returns>
     Task<Student?> GetByIdAsync(Guid id, CancellationToken token = default);
+
     /// <summary>
     /// Add student data
     /// </summary>
@@ -27,4 +29,12 @@ public interface IStudentRepository
     /// <param name="token">Cancellation token</param>
     /// <returns>Returns void</returns>
     Task AddAsync(Student student, CancellationToken token = default);
+
+    /// <summary>
+    /// Add student data
+    /// </summary>
+    /// <param name="student"><see cref="List<Student>"/>A list of student data to be added</param>
+    /// <param name="token">Cancellation token</param>
+    /// <returns>Returns void</returns>
+    Task AddAllAsync(List<Student> student, CancellationToken token = default);
 }

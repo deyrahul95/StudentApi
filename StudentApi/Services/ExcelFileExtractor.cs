@@ -5,24 +5,30 @@ using StudentApi.Services.Interfaces;
 
 namespace StudentApi.Services;
 
-public class ExcelFileExtractor : IFileExtractor
+public class ExcelFileExtractor(ILogger<ExcelFileExtractor> logger) : IFileExtractor
 {
     public async Task<List<T>> ExtractFileData<T>(
         IFormFile file,
         CancellationToken token,
         Action<int, string>? onRowError = null) where T : class, new()
     {
+        logger.LogInformation("Start extracting file data. FileName: {FileName}", file.FileName);
         var result = new List<T>();
+
+        logger.LogInformation("Loading workbook");
         var rows = await LoadWorkbookAsync(file, token);
 
         if (rows == null || rows.Count < 2)
         {
+            logger.LogWarning("Workbook row count: {Count}", rows?.Count.ToString() ?? "N/A");
             return result;
         }
 
         var headers = rows[0];
+        logger.LogInformation("Found headers count: {Count}", headers.Count);
         var propertyMap = GetHeaderMap<T>(headers);
 
+        logger.LogInformation("Start converting row data into model");
         for (int rowIndex = 1; rowIndex < rows.Count; rowIndex++)
         {
             var row = rows[rowIndex];
@@ -44,11 +50,12 @@ public class ExcelFileExtractor : IFileExtractor
                 }
             }
         }
+        logger.LogInformation("Row data converted into model");
 
         return result;
     }
 
-    private static async Task<List<List<string>>?> LoadWorkbookAsync(IFormFile file, CancellationToken token)
+    private async Task<List<List<string>>?> LoadWorkbookAsync(IFormFile file, CancellationToken token)
     {
         if (file == null || file.Length == 0)
         {
@@ -64,6 +71,7 @@ public class ExcelFileExtractor : IFileExtractor
 
         if (worksheet == null)
         {
+            logger.LogWarning("Worksheet is empty. FileName: {FileName}", file.FileName);
             return null;
         }
 
@@ -95,13 +103,15 @@ public class ExcelFileExtractor : IFileExtractor
 
             // Only map headers that are actually present in the Excel file
             if (headers.Contains(header, StringComparer.OrdinalIgnoreCase))
+            {
                 map[header] = prop;
+            }
         }
 
         return map;
     }
 
-    private static bool ConvertRowToModel<T>(
+    private bool ConvertRowToModel<T>(
     List<string> row,
     List<string> headers,
     Dictionary<string, PropertyInfo> propertyMap,
@@ -129,6 +139,11 @@ public class ExcelFileExtractor : IFileExtractor
             }
             catch (Exception ex)
             {
+                logger.LogError(
+                    ex,
+                    "Error occurred in 'ConvertRowToModel' method. Error: {Error}, Column: {Column}",
+                    ex.Message,
+                    header);
                 errorMessages.Add($"Column '{header}': {ex.Message}");
             }
         }
@@ -136,7 +151,7 @@ public class ExcelFileExtractor : IFileExtractor
         return errorMessages.Count == 0;
     }
 
-    private static object? ConvertValue(string input, Type targetType)
+    private object? ConvertValue(string input, Type targetType)
     {
         if (string.IsNullOrWhiteSpace(input))
         {
@@ -162,6 +177,7 @@ public class ExcelFileExtractor : IFileExtractor
             }
             else
             {
+                logger.LogError($"Unable to parse '{input}' to enum '{type.Name}'");
                 throw new InvalidCastException($"Unable to parse '{input}' to enum '{type.Name}'.");
             }
         }

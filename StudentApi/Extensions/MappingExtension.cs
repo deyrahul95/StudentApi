@@ -35,4 +35,39 @@ public static class MappingExtension
 
         return [.. students.Select(ToDto)];
     }
+
+    public static Student ToEntity(this ExcelStudentModel studentModel)
+    {
+        var student = new Student()
+        {
+            Id = Guid.NewGuid(),
+            FirstName = studentModel.FirstName,
+            LastName = studentModel.LastName,
+            Roll = studentModel.Roll,
+            Age = studentModel.Age,
+            PhoneNumber = studentModel.PhoneNumber,
+            EmailAddress = studentModel.EmailAddress,
+            Gender = studentModel.Gender,
+            Education = studentModel.Education,
+            Occupation = studentModel.Occupation,
+            Experience = studentModel.Experience,
+            Salary = studentModel.Salary,
+            MaritalStatus = studentModel.MaritalStatus,
+            NumberOfChildren = studentModel.NumberOfChildren,
+            CreatedAt = DateTime.UtcNow,
+            LastUpdated = DateTime.UtcNow
+        };
+
+        return student;
+    }
+
+    public static List<Student> ToEntityList(this List<ExcelStudentModel> studentModels)
+    {
+        if (studentModels.Count == 0)
+        {
+            return [];
+        }
+
+        return [.. studentModels.Select(ToEntity)];
+    }
 }

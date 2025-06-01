@@ -79,8 +79,8 @@ namespace StudentApi.DB.Migrations
                         .HasMaxLength(11)
                         .HasColumnType("character varying(11)");
 
-                    b.Property<int>("Roll")
-                        .HasColumnType("integer");
+                    b.Property<long>("Roll")
+                        .HasColumnType("bigint");
 
                     b.Property<decimal>("Salary")
                         .HasColumnType("numeric");

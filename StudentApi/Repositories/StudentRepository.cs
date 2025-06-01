@@ -13,6 +13,14 @@ public class StudentRepository(
     AppDbContext dbContext,
     ILogger<StudentRepository> logger) : IStudentRepository
 {
+    public async Task AddAllAsync(List<Student> student, CancellationToken token = default)
+    {
+        await dbContext.Students.AddRangeAsync(student, token);
+        await dbContext.SaveChangesAsync(token);
+        logger.LogInformation("All Student Added.");
+
+    }
+
     /// <summary>
     /// Add student data
     /// </summary>
@@ -21,7 +29,9 @@ public class StudentRepository(
     /// <returns>Returns void</returns>
     public async Task AddAsync(Student student, CancellationToken token = default)
     {
-        var result = await dbContext.Students.AddAsync(student, token);
+        var result = await dbContext.Students.AddAsync(
+            entity: student,
+            cancellationToken: token);
 
         await dbContext.SaveChangesAsync(token);
         logger.LogInformation("Student Added. Student: {@Student}", result.Entity);
