@@ -4,7 +4,7 @@ public record StudentDto(
     Guid Id,
     string FirstName,
     string LastName,
-    int Roll,
+    long Roll,
     int Age,
     string PhoneNumber,
     string EmailAddress,

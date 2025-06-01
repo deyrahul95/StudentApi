@@ -21,7 +21,7 @@ public class Student
     public string LastName { get; set; } = string.Empty;
 
     [Required]
-    public int Roll { get; set; }
+    public long Roll { get; set; }
 
     [Required]
     public int Age { get; set; }
