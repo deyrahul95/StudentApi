@@ -48,6 +48,6 @@ public class StudentRepository(
     {
         return await dbContext.Students.AsNoTracking()
             .Where(x => x.Id == id)
-            .SingleOrDefaultAsync(token);
+            .FirstOrDefaultAsync(token);
     }
 }
