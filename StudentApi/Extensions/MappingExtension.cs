@@ -15,12 +15,12 @@ public static class MappingExtension
             Age: student.Age,
             PhoneNumber: student.PhoneNumber,
             EmailAddress: student.EmailAddress,
-            Gender: student.Gender,
+            Gender: student.Gender.ToString(),
             Education: student.Education,
             Occupation: student.Occupation,
             Experience: student.Experience,
             Salary: student.Salary,
-            MaritalStatus: student.MaritalStatus,
+            MaritalStatus: student.MaritalStatus.ToString(),
             NumberOfChildren: student.NumberOfChildren,
             LastUpdated: student.LastUpdated
         );

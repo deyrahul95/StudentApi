@@ -3,6 +3,7 @@ using StudentApi.Common;
 using StudentApi.Extensions;
 using StudentApi.Models;
 using StudentApi.Repositories;
+using StudentApi.Services.Interfaces;
 
 namespace StudentApi.Services;
 

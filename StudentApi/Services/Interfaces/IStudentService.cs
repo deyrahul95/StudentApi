@@ -1,7 +1,7 @@
 using StudentApi.Common;
 using StudentApi.Models;
 
-namespace StudentApi.Services;
+namespace StudentApi.Services.Interfaces;
 
 public interface IStudentService
 {

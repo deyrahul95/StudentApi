@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using StudentApi.DB;
 using StudentApi.Repositories;
 using StudentApi.Services;
+using StudentApi.Services.Interfaces;
 
 namespace StudentApi.Extensions;
 
@@ -16,6 +17,8 @@ public static class ServiceExtension
 
         services.AddScoped<IStudentRepository, StudentRepository>();
         services.AddScoped<IStudentService, StudentService>();
+
+        services.AddScoped<IFileExtractor, ExcelFileExtractor>();
 
         return services;
     }

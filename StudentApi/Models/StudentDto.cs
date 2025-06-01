@@ -1,5 +1,3 @@
-using StudentApi.Enums;
-
 namespace StudentApi.Models;
 
 public record StudentDto(
@@ -10,12 +8,12 @@ public record StudentDto(
     int Age,
     string PhoneNumber,
     string EmailAddress,
-    Gender Gender,
+    string Gender,
     string Education,
     string Occupation,
     int Experience,
     decimal Salary,
-    MaritalStatus MaritalStatus,
+    string MaritalStatus,
     int NumberOfChildren,
     DateTime LastUpdated
 );
