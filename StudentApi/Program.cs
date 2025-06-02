@@ -1,7 +1,11 @@
 using Scalar.AspNetCore;
+using Serilog;
 using StudentApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddApiServices(builder.Configuration);
 
@@ -22,6 +26,8 @@ if (app.Environment.IsDevelopment())
             options.WithSidebar(true);
         });
 }
+
+app.UseSerilogRequestLogging();
 
 app.MapControllers();
 
