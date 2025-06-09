@@ -8,6 +8,7 @@ builder.Host.UseSerilog((context, loggerConfig) =>
     loggerConfig.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddApiServices(builder.Configuration);
+builder.Services.AddCustomRateLimiter();
 
 builder.Services.AddControllers();
 
@@ -28,6 +29,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseSerilogRequestLogging();
+
+app.UseRateLimiter();
 
 app.MapControllers();
 
