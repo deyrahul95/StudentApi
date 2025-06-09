@@ -71,7 +71,7 @@ public class StudentService(
         {
             logger.LogInformation("Start fetching students data.");
 
-            var cacheKey = $"students:{parameters.PageNumber}:{parameters.PageSize}:{parameters.SearchTerm ?? "null"}:{parameters.SortBy}:{parameters.SortDirection}";
+            var cacheKey = GenerateCachedKey(parameters);
             var cached = await cacheService.GetAsync<PagedResult<StudentDto>>(cacheKey);
 
             if (cached is not null)
@@ -161,6 +161,16 @@ public class StudentService(
                 statusCode: HttpStatusCode.InternalServerError,
                 message: ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Generates a unique cache key based on the provided <see cref="StudentQueryParameters"/>.
+    /// </summary>
+    /// <param name="parameters">The query parameters used to filter and paginate student data.</param>
+    /// <returns>A string representing the generated cache key.</returns>
+    private static string GenerateCachedKey(StudentQueryParameters parameters)
+    {
+        return $"students_{parameters.PageNumber}_{parameters.PageSize}_{parameters.SearchTerm}_{parameters.SortBy}_{parameters.SortDirection}";
     }
 
     /// <summary>
