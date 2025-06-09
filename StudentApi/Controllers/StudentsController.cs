@@ -21,7 +21,7 @@ public class StudentsController(
     }
 
     [HttpPost]
-    public async Task<IActionResult> Add(IFormFile file, CancellationToken token = default)
+    public async Task<IActionResult> Import(IFormFile file, CancellationToken token = default)
     {
         if (file == null || file.Length == 0)
         {
@@ -42,7 +42,7 @@ public class StudentsController(
                 message: $"Invalid file type. Only {allowedTypes} files are accepted"));
         }
 
-        var response = await studentService.AddStudents(file, token);
+        var response = await studentService.ImportStudents(file, token);
 
         return StatusCode(statusCode: (int)response.StatusCode, value: response);
     }

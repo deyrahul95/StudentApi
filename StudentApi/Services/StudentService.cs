@@ -12,7 +12,7 @@ public class StudentService(
     IFileExtractor fileExtractor,
     ILogger<StudentService> logger) : IStudentService
 {
-    public async Task<ServiceResult> AddStudents(IFormFile file, CancellationToken token = default)
+    public async Task<ServiceResult> ImportStudents(IFormFile file, CancellationToken token = default)
     {
         try
         {
@@ -24,12 +24,12 @@ public class StudentService(
 
             logger.LogInformation("Student data extracted successfully. Count: {Count}", excelStudentModels.Count);
 
-            await studentRepository.AddAllAsync(excelStudentModels.ToEntityList(), token);
+            await studentRepository.ImportAsync(excelStudentModels.ToEntityList(), token);
             logger.LogInformation("Data inserted into DB");
 
             return new ServiceResult(
                 statusCode: HttpStatusCode.Created,
-                message: "Students added into database successfully");
+                message: "Students imported successfully");
         }
         catch (Exception ex)
         {

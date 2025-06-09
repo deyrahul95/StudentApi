@@ -36,5 +36,5 @@ public interface IStudentRepository
     /// <param name="student"><see cref="List<Student>"/>A list of student data to be added</param>
     /// <param name="token">Cancellation token</param>
     /// <returns>Returns void</returns>
-    Task AddAllAsync(List<Student> student, CancellationToken token = default);
+    Task ImportAsync(List<Student> student, CancellationToken token = default);
 }

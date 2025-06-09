@@ -13,7 +13,7 @@ public class StudentRepository(
     AppDbContext dbContext,
     ILogger<StudentRepository> logger) : IStudentRepository
 {
-    public async Task AddAllAsync(List<Student> student, CancellationToken token = default)
+    public async Task ImportAsync(List<Student> student, CancellationToken token = default)
     {
         await dbContext.Students.AddRangeAsync(student, token);
         await dbContext.SaveChangesAsync(token);
