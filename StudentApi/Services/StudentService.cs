@@ -10,11 +10,21 @@ using StudentApi.Services.Interfaces;
 
 namespace StudentApi.Services;
 
+/// <summary>
+/// Provides student-related operations including data retrieval, pagination, sorting, and import
+/// Implements <see cref="IStudentService"/>
+/// </summary>
 public class StudentService(
     IStudentRepository studentRepository,
     IFileExtractor fileExtractor,
     ILogger<StudentService> logger) : IStudentService
 {
+    /// <summary>
+    /// Imports student data from the provided file
+    /// </summary>
+    /// <param name="file">The file containing student data to import</param>
+    /// <param name="token">A cancellation token to observe while waiting for the task to complete</param>
+    /// <returns>A task representing the asynchronous operation, containing a service result indicating the outcome of the import</returns>
     public async Task<ServiceResult> ImportStudents(IFormFile file, CancellationToken token = default)
     {
         try
@@ -46,6 +56,12 @@ public class StudentService(
         }
     }
 
+    /// <summary>
+    /// Retrieves a paged list of students based on query parameters
+    /// </summary>
+    /// <param name="parameters">Parameters for filtering, sorting, and pagination</param>
+    /// <param name="token">A cancellation token to observe while waiting for the task to complete</param>
+    /// <returns>A task representing the asynchronous operation, containing a service result with a paged list of <see cref="StudentDto"/></returns>
     public async Task<ServiceResult<PagedResult<StudentDto>>> GetAllStudents(
         StudentQueryParameters parameters,
         CancellationToken token = default)
@@ -95,6 +111,12 @@ public class StudentService(
         }
     }
 
+    /// <summary>
+    /// Retrieves a student by their unique identifier
+    /// </summary>
+    /// <param name="id">The unique identifier of the student</param>
+    /// <param name="token">A cancellation token to observe while waiting for the task to complete</param>
+    /// <returns>A task representing the asynchronous operation, containing a service result with the <see cref="StudentDto"/></returns>
     public async Task<ServiceResult<StudentDto>> GetStudent(Guid id, CancellationToken token = default)
     {
         try
@@ -130,6 +152,13 @@ public class StudentService(
         }
     }
 
+    /// <summary>
+    /// Applies pagination to the given <see cref="IQueryable{Student}"/> based on the specified parameters
+    /// </summary>
+    /// <param name="query">The student query to paginate</param>
+    /// <param name="parameters">Pagination parameters including page number and page size</param>
+    /// <param name="token">A cancellation token to observe while waiting for the task to complete</param>
+    /// <returns>A task that represents the asynchronous operation, containing a paged result of <see cref="StudentDto"/></returns>
     private static async Task<PagedResult<StudentDto>> ApplyPagination(
         IQueryable<Student> query,
         PaginationParameters parameters,
@@ -149,6 +178,13 @@ public class StudentService(
             pageSize: parameters.PageSize);
     }
 
+    /// <summary>
+    /// Applies sorting to the given <see cref="IQueryable{Student}"/> based on the specified sort field and direction
+    /// </summary>
+    /// <param name="query">The student query to apply sorting to</param>
+    /// <param name="sortBy">The field by which to sort the students</param>
+    /// <param name="direction">The direction of the sort (ascending or descending)</param>
+    /// <returns>An <see cref="IQueryable{Student}"/> with the applied sorting</returns>
     private static IQueryable<Student> ApplySorting(
         IQueryable<Student> query,
         StudentSortField sortBy,

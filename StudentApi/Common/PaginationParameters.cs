@@ -1,5 +1,9 @@
 namespace StudentApi.Common;
 
+/// <summary>
+/// Provides properties to control pagination of query results
+/// Includes page number and page size with a maximum limit on page size
+/// </summary>
 public class PaginationParameters
 {
     private const int MaxPageSize = 100;
