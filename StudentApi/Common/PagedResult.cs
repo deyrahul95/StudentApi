@@ -4,7 +4,7 @@ namespace StudentApi.Common;
 /// Represents a paged subset of a collection of items with pagination metadata
 /// </summary>
 /// <typeparam name="T">The type of items in the paged result</typeparam>
-public sealed class PagedResult<T>(List<T> items, int count, int pageNumber, int pageSize)
+public sealed class PagedResult<T>(List<T> items, int totalCount, int pageNumber, int pageSize)
 {
     /// <summary>
     /// Gets or sets the items on the current page
@@ -14,7 +14,7 @@ public sealed class PagedResult<T>(List<T> items, int count, int pageNumber, int
     /// <summary>
     /// Gets or sets the total number of items across all pages
     /// </summary>
-    public int TotalCount { get; set; } = count;
+    public int TotalCount { get; set; } = totalCount;
 
     /// <summary>
     /// Gets or sets the current page number (1-based)

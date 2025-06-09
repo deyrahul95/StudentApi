@@ -6,4 +6,7 @@ public class ApiConstants
     {
         ".xlsx", ".xls"
     };
+
+    public const int CachedTimeOutInSec = 30;
+    public const string RedisInstanceName = "StudentApi";
 }

@@ -17,6 +17,7 @@ namespace StudentApi.Services;
 public class StudentService(
     IStudentRepository studentRepository,
     IFileExtractor fileExtractor,
+    ICacheService cacheService,
     ILogger<StudentService> logger) : IStudentService
 {
     /// <summary>
@@ -69,30 +70,40 @@ public class StudentService(
         try
         {
             logger.LogInformation("Start fetching students data.");
-            var query = studentRepository.GetQueryable();
 
-            if (string.IsNullOrEmpty(parameters.SearchTerm) == false)
+            var cacheKey = $"students:{parameters.PageNumber}:{parameters.PageSize}:{parameters.SearchTerm ?? "null"}:{parameters.SortBy}:{parameters.SortDirection}";
+            var cached = await cacheService.GetAsync<PagedResult<StudentDto>>(cacheKey);
+
+            if (cached is not null)
             {
-                var term = parameters.SearchTerm.ToLower();
+                logger.LogInformation(
+                    "[Cached] Retrieved students data from cache successfully. Count: {Count}, Key: {Key}",
+                    cached.Items.Count,
+                    cacheKey);
 
-                query = query.Where(s =>
-                    s.FirstName.ToLower().Contains(term) ||
-                    s.LastName.ToLower().Contains(term) ||
-                    s.Roll.ToString().Contains(term) ||
-                    s.Age.ToString().Contains(term)
-                );
+                return new ServiceResult<PagedResult<StudentDto>>(
+                    statusCode: HttpStatusCode.OK,
+                    message: "Students fetched successfully",
+                    data: cached);
             }
 
+            var query = studentRepository.GetQueryable();
+            query = ApplySearching(parameters: parameters, query: query);
             query = ApplySorting(query: query, sortBy: parameters.SortBy, direction: parameters.SortDirection);
 
             var pagedResult = await ApplyPagination(
                 query: query,
                 parameters: parameters,
                 token: token);
-
             logger.LogInformation(
                 "Students data fetched successfully. Count: {Count}",
                 pagedResult.Items.Count);
+
+            await cacheService.SetAsync(key: cacheKey, item: pagedResult);
+            logger.LogInformation(
+                "[Cached] Students data cached successfully. Count: {Count}, Key: {Key}",
+                pagedResult.Items.Count,
+                cacheKey);
 
             return new ServiceResult<PagedResult<StudentDto>>(
                 statusCode: HttpStatusCode.OK,
@@ -153,29 +164,28 @@ public class StudentService(
     }
 
     /// <summary>
-    /// Applies pagination to the given <see cref="IQueryable{Student}"/> based on the specified parameters
+    /// Applies search filtering to the student query based on the provided query parameters
     /// </summary>
-    /// <param name="query">The student query to paginate</param>
-    /// <param name="parameters">Pagination parameters including page number and page size</param>
-    /// <param name="token">A cancellation token to observe while waiting for the task to complete</param>
-    /// <returns>A task that represents the asynchronous operation, containing a paged result of <see cref="StudentDto"/></returns>
-    private static async Task<PagedResult<StudentDto>> ApplyPagination(
-        IQueryable<Student> query,
-        PaginationParameters parameters,
-        CancellationToken token)
+    /// <param name="parameters">The query parameters containing search criteria</param>
+    /// <param name="query">The initial student query to apply filtering to</param>
+    /// <returns>The filtered <see cref="IQueryable{Student}"/> based on search criteria</returns>
+    private static IQueryable<Student> ApplySearching(
+        StudentQueryParameters parameters,
+        IQueryable<Student> query)
     {
-        var totalCount = await query.CountAsync(token);
+        if (string.IsNullOrEmpty(parameters.SearchTerm) == false)
+        {
+            var term = parameters.SearchTerm.ToLower();
 
-        var students = await query
-            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-            .Take(parameters.PageSize)
-            .ToListAsync(cancellationToken: token);
+            query = query.Where(s =>
+                s.FirstName.ToLower().Contains(term) ||
+                s.LastName.ToLower().Contains(term) ||
+                s.Roll.ToString().Contains(term) ||
+                s.Age.ToString().Contains(term)
+            );
+        }
 
-        return new PagedResult<StudentDto>(
-            items: students.ToDtoList(),
-            count: totalCount,
-            pageNumber: parameters.PageNumber,
-            pageSize: parameters.PageSize);
+        return query;
     }
 
     /// <summary>
@@ -216,4 +226,29 @@ public class StudentService(
         };
     }
 
+    /// <summary>
+    /// Applies pagination to the given <see cref="IQueryable{Student}"/> based on the specified parameters
+    /// </summary>
+    /// <param name="query">The student query to paginate</param>
+    /// <param name="parameters">Pagination parameters including page number and page size</param>
+    /// <param name="token">A cancellation token to observe while waiting for the task to complete</param>
+    /// <returns>A task that represents the asynchronous operation, containing a paged result of <see cref="StudentDto"/></returns>
+    private static async Task<PagedResult<StudentDto>> ApplyPagination(
+        IQueryable<Student> query,
+        PaginationParameters parameters,
+        CancellationToken token)
+    {
+        var totalCount = await query.CountAsync(token);
+
+        var students = await query
+            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToListAsync(cancellationToken: token);
+
+        return new PagedResult<StudentDto>(
+            items: students.ToDtoList(),
+            totalCount: totalCount,
+            pageNumber: parameters.PageNumber,
+            pageSize: parameters.PageSize);
+    }
 }
