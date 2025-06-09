@@ -43,25 +43,29 @@ public class StudentService(
         }
     }
 
-    public async Task<ServiceResult<List<StudentDto>>> GetAllStudents(CancellationToken token = default)
+    public async Task<ServiceResult<PagedResult<StudentDto>>> GetAllStudents(
+        PaginationParameters pagination,
+        CancellationToken token = default)
     {
         try
         {
             logger.LogInformation("Start fetching students data.");
-            var students = await studentRepository.GetAllAsync(token);
-
-            var studentDtoList = students
-                .OrderByDescending(x => x.LastUpdated)
-                .ToDtoList();
+            var students = await studentRepository.GetAllAsync(pagination: pagination, token: token);
 
             logger.LogInformation(
                 "Students data fetched successfully. Count: {Count}",
-                studentDtoList.Count);
+                students.Items.Count);
 
-            return new ServiceResult<List<StudentDto>>(
+            var studentDTOs = new PagedResult<StudentDto>(
+                items: students.Items.ToDtoList(),
+                count: students.TotalCount,
+                pageNumber: students.PageNumber,
+                pageSize: students.PageSize);
+
+            return new ServiceResult<PagedResult<StudentDto>>(
                 statusCode: HttpStatusCode.OK,
                 message: "Students fetched successfully",
-                data: studentDtoList);
+                data: studentDTOs);
         }
         catch (Exception ex)
         {
@@ -69,7 +73,7 @@ public class StudentService(
                 exception: ex,
                 message: "Failed to fetched students data. Error: {@Error}",
                 ex.Message);
-            return new ServiceResult<List<StudentDto>>(
+            return new ServiceResult<PagedResult<StudentDto>>(
                 statusCode: HttpStatusCode.InternalServerError,
                 message: ex.Message);
         }

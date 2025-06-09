@@ -13,9 +13,11 @@ public class StudentsController(
     ILogger<StudentsController> logger) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Retrieve(CancellationToken token = default)
+    public async Task<IActionResult> Retrieve([FromQuery] PaginationParameters pagination, CancellationToken token = default)
     {
-        var response = await studentService.GetAllStudents(token);
+        var response = await studentService.GetAllStudents(
+            pagination: pagination,
+            token: token);
 
         return StatusCode(statusCode: (int)response.StatusCode, value: response);
     }
