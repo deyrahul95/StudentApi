@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using StudentApi.Common;
 using StudentApi.Constants;
+using StudentApi.Models;
 using StudentApi.Services.Interfaces;
 
 namespace StudentApi.Controllers;
@@ -14,7 +15,7 @@ public class StudentsController(
 {
     [HttpGet]
     public async Task<IActionResult> Retrieve(
-        [FromQuery] PaginationParameters parameters,
+        [FromQuery] StudentQueryParameters parameters,
         CancellationToken token = default)
     {
         var response = await studentService.GetAllStudents(

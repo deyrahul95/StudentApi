@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using StudentApi.Common;
+using StudentApi.DB.Entities;
+using StudentApi.Enums;
 using StudentApi.Extensions;
 using StudentApi.Models;
 using StudentApi.Repositories;
@@ -45,7 +47,7 @@ public class StudentService(
     }
 
     public async Task<ServiceResult<PagedResult<StudentDto>>> GetAllStudents(
-        PaginationParameters parameters,
+        StudentQueryParameters parameters,
         CancellationToken token = default)
     {
         try
@@ -53,23 +55,28 @@ public class StudentService(
             logger.LogInformation("Start fetching students data.");
             var query = studentRepository.GetQueryable();
 
-            var totalCount = await query.CountAsync(token);
+            if (string.IsNullOrEmpty(parameters.SearchTerm) == false)
+            {
+                var term = parameters.SearchTerm.ToLower();
 
-            var students = await query
-                .OrderByDescending(s => s.LastUpdated)
-                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-                .Take(parameters.PageSize)
-                .ToListAsync(cancellationToken: token);
+                query = query.Where(s =>
+                    s.FirstName.ToLower().Contains(term) ||
+                    s.LastName.ToLower().Contains(term) ||
+                    s.Roll.ToString().Contains(term) ||
+                    s.Age.ToString().Contains(term)
+                );
+            }
+
+            query = ApplySorting(query: query, sortBy: parameters.SortBy, direction: parameters.SortDirection);
+
+            var pagedResult = await ApplyPagination(
+                query: query,
+                parameters: parameters,
+                token: token);
 
             logger.LogInformation(
                 "Students data fetched successfully. Count: {Count}",
-                students.Count);
-
-            var pagedResult = new PagedResult<StudentDto>(
-                items: students.ToDtoList(),
-                count: totalCount,
-                pageNumber: parameters.PageNumber,
-                pageSize: parameters.PageSize);
+                pagedResult.Items.Count);
 
             return new ServiceResult<PagedResult<StudentDto>>(
                 statusCode: HttpStatusCode.OK,
@@ -122,4 +129,55 @@ public class StudentService(
                 message: ex.Message);
         }
     }
+
+    private static async Task<PagedResult<StudentDto>> ApplyPagination(
+        IQueryable<Student> query,
+        PaginationParameters parameters,
+        CancellationToken token)
+    {
+        var totalCount = await query.CountAsync(token);
+
+        var students = await query
+            .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+            .Take(parameters.PageSize)
+            .ToListAsync(cancellationToken: token);
+
+        return new PagedResult<StudentDto>(
+            items: students.ToDtoList(),
+            count: totalCount,
+            pageNumber: parameters.PageNumber,
+            pageSize: parameters.PageSize);
+    }
+
+    private static IQueryable<Student> ApplySorting(
+        IQueryable<Student> query,
+        StudentSortField sortBy,
+        SortDirection direction)
+    {
+        var isDescending = direction == SortDirection.Desc;
+
+        return sortBy switch
+        {
+            StudentSortField.Name => isDescending
+                ? query
+                    .OrderByDescending(s => s.FirstName)
+                    .ThenByDescending(s => s.LastName)
+                : query
+                    .OrderBy(s => s.FirstName)
+                    .ThenBy(s => s.LastName),
+
+            StudentSortField.Roll => isDescending
+                ? query.OrderByDescending(s => s.Roll)
+                : query.OrderBy(s => s.Roll),
+
+            StudentSortField.Age => isDescending
+                ? query.OrderByDescending(s => s.Age)
+                : query.OrderBy(s => s.Age),
+
+            _ => query
+                    .OrderBy(s => s.FirstName)
+                    .ThenBy(s => s.LastName)
+        };
+    }
+
 }

@@ -38,9 +38,9 @@ public class StudentRepository(
     }
 
     /// <summary>
-    /// Retrieved all students data
+    /// Retrieves an <see cref="IQueryable{Student}"/> representing the collection of students
     /// </summary>
-    /// <returns>Returns an IEnumerable list of <see cref="Student"/> data</returns>
+    /// <returns>An <see cref="IQueryable{Student}"/> that can be used to query student data</returns>
     public IQueryable<Student> GetQueryable()
     {
         return dbContext.Students.AsNoTracking();
