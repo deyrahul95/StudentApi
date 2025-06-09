@@ -1,4 +1,3 @@
-using StudentApi.Common;
 using StudentApi.DB.Entities;
 
 namespace StudentApi.Repositories;
@@ -11,9 +10,8 @@ public interface IStudentRepository
     /// <summary>
     /// Retrieved all students data
     /// </summary>
-    /// <param name="token">Cancellation token</param>
     /// <returns>Returns an IEnumerable list of <see cref="Student"/> data</returns>
-    Task<PagedResult<Student>> GetAllAsync(PaginationParameters pagination, CancellationToken token = default);
+    IQueryable<Student> GetQueryable();
 
     /// <summary>
     /// Retrieve student data by it's ID

@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using StudentApi.Common;
 using StudentApi.DB;
 using StudentApi.DB.Entities;
 
@@ -41,25 +40,10 @@ public class StudentRepository(
     /// <summary>
     /// Retrieved all students data
     /// </summary>
-    /// <param name="token">Cancellation token</param>
     /// <returns>Returns an IEnumerable list of <see cref="Student"/> data</returns>
-    public async Task<PagedResult<Student>> GetAllAsync(PaginationParameters pagination, CancellationToken token = default)
+    public IQueryable<Student> GetQueryable()
     {
-        var query = dbContext.Students.AsNoTracking();
-
-        var totalCount = await query.CountAsync(cancellationToken: token);
-
-        var items = await query
-            .OrderByDescending(s => s.LastUpdated)
-            .Skip((pagination.PageNumber - 1) * pagination.PageSize)
-            .Take(pagination.PageSize)
-            .ToListAsync(cancellationToken: token);
-
-        return new PagedResult<Student>(
-            items: items,
-            count: totalCount,
-            pageNumber: pagination.PageNumber,
-            pageSize: pagination.PageSize);
+        return dbContext.Students.AsNoTracking();
     }
 
     /// <summary>

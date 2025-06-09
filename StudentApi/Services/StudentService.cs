@@ -1,4 +1,5 @@
 using System.Net;
+using Microsoft.EntityFrameworkCore;
 using StudentApi.Common;
 using StudentApi.Extensions;
 using StudentApi.Models;
@@ -44,28 +45,36 @@ public class StudentService(
     }
 
     public async Task<ServiceResult<PagedResult<StudentDto>>> GetAllStudents(
-        PaginationParameters pagination,
+        PaginationParameters parameters,
         CancellationToken token = default)
     {
         try
         {
             logger.LogInformation("Start fetching students data.");
-            var students = await studentRepository.GetAllAsync(pagination: pagination, token: token);
+            var query = studentRepository.GetQueryable();
+
+            var totalCount = await query.CountAsync(token);
+
+            var students = await query
+                .OrderByDescending(s => s.LastUpdated)
+                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
+                .Take(parameters.PageSize)
+                .ToListAsync(cancellationToken: token);
 
             logger.LogInformation(
                 "Students data fetched successfully. Count: {Count}",
-                students.Items.Count);
+                students.Count);
 
-            var studentDTOs = new PagedResult<StudentDto>(
-                items: students.Items.ToDtoList(),
-                count: students.TotalCount,
-                pageNumber: students.PageNumber,
-                pageSize: students.PageSize);
+            var pagedResult = new PagedResult<StudentDto>(
+                items: students.ToDtoList(),
+                count: totalCount,
+                pageNumber: parameters.PageNumber,
+                pageSize: parameters.PageSize);
 
             return new ServiceResult<PagedResult<StudentDto>>(
                 statusCode: HttpStatusCode.OK,
                 message: "Students fetched successfully",
-                data: studentDTOs);
+                data: pagedResult);
         }
         catch (Exception ex)
         {

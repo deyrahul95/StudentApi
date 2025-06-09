@@ -5,7 +5,9 @@ namespace StudentApi.Services.Interfaces;
 
 public interface IStudentService
 {
-    Task<ServiceResult<PagedResult<StudentDto>>> GetAllStudents(PaginationParameters pagination, CancellationToken token = default);
+    Task<ServiceResult<PagedResult<StudentDto>>> GetAllStudents(
+        PaginationParameters parameters,
+        CancellationToken token = default);
     Task<ServiceResult<StudentDto>> GetStudent(Guid id, CancellationToken token = default);
     Task<ServiceResult> ImportStudents(IFormFile file, CancellationToken token = default);
 }
